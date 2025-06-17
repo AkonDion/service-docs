@@ -329,7 +329,19 @@ export async function POST(request: Request) {
       </html>
     `
 
-    const browser = await puppeteer.launch({ headless: 'new' })
+    const browser = await puppeteer.launch({ 
+      headless: 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu'
+      ]
+    })
     const page = await browser.newPage()
     await page.setContent(certificateHtml, { waitUntil: 'networkidle0' })
     const pdf = await page.pdf({ format: 'A4' })
