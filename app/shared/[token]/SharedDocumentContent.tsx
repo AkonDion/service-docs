@@ -193,15 +193,20 @@ export default function SharedDocumentContent({ token }: { token: string }) {
       })
       
       console.log('PDF API response status:', response.status)
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()))
+      console.log('Content-Type:', response.headers.get('content-type'))
+      console.log('Content-Length:', response.headers.get('content-length'))
+      console.log('Content-Disposition:', response.headers.get('content-disposition'))
+      
       if (!response.ok) {
         const errorData = await response.json()
-        console.error('PDF Generation Error:', errorData)
         throw new Error(errorData.error || 'Failed to generate PDF')
       }
 
       console.log('Converting response to blob...')
       const blob = await response.blob()
       console.log('Blob created, size:', blob.size)
+      console.log('Blob type:', blob.type)
       
       console.log('Creating download URL...')
       const url = URL.createObjectURL(blob)

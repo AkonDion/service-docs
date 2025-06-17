@@ -355,10 +355,20 @@ export async function POST(request: Request) {
     await browser.close()
     console.log('Browser closed, returning PDF...')
 
+    console.log('PDF buffer size:', pdf.length)
+    console.log('Returning PDF response with headers...')
+    
     return new NextResponse(pdf, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="service-document-${data.documentNumber}.pdf"`,
+        'Content-Length': pdf.length.toString(),
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        // Add headers to help identify if Cloudflare is modifying the response
+        'X-PDF-Size': pdf.length.toString(),
+        'X-Content-Type-Original': 'application/pdf',
       },
     })
   } catch (error) {

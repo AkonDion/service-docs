@@ -199,6 +199,11 @@ function ServiceDocumentContent() {
       })
       
       console.log('PDF API response status:', response.status)
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()))
+      console.log('Content-Type:', response.headers.get('content-type'))
+      console.log('Content-Length:', response.headers.get('content-length'))
+      console.log('Content-Disposition:', response.headers.get('content-disposition'))
+      
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.error || 'Failed to generate PDF')
@@ -207,6 +212,7 @@ function ServiceDocumentContent() {
       console.log('Converting response to blob...')
       const blob = await response.blob()
       console.log('Blob created, size:', blob.size)
+      console.log('Blob type:', blob.type)
       
       // Try alternative download method for better compatibility
       try {
