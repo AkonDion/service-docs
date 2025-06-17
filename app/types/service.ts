@@ -65,4 +65,6 @@ export interface ServiceDocument {
   customer: Customer
   equipment: Equipment[]
   invoice: Invoice
+  stripeLink?: string | null
+  technician_name?: string | null
 } 

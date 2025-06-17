@@ -50,6 +50,8 @@ export async function GET(
     // Transform the data to match our TypeScript types
     const transformedDocument: ServiceDocument = {
       documentNumber,
+      stripeLink: rawDocument.stripe_link || null,
+      technician_name: rawDocument.technician_name || null,
       serviceDate: new Date(rawDocument.service_date).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',

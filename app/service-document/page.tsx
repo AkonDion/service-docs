@@ -26,7 +26,8 @@ import {
   Droplets,
   PowerOff,
   Lightbulb,
-  Share2
+  Share2,
+  Wind
 } from "lucide-react"
 import { useState, useMemo, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
@@ -70,6 +71,13 @@ const serviceTips = [
     content:
       "To prevent bacterial buildup, pour one capful of bleach into your condensate pump's reservoir once per year. This extends pump life and prevents blockages.",
     color: "text-purple-600",
+  },
+  {
+    icon: Wind,
+    title: "Summer HRV Usage",
+    content:
+      "Running your HRV in the summer can bring in hot, humid air and reduce your system's efficiency. Unless required for specific ventilation needs, it's best to turn off or limit HRV use during warmer months.",
+    color: "text-orange-600",
   },
 ]
 
@@ -138,8 +146,12 @@ function ServiceDocumentContent() {
   }
 
   const handlePayNow = () => {
-    if (serviceData?.invoice?.total) {
-      alert(`Initiating payment for $${serviceData.invoice.total.toFixed(2)}... (This is a demo)`)
+    if (serviceData?.stripeLink) {
+      // Open Stripe payment link
+      window.open(serviceData.stripeLink, '_blank')
+    } else if (serviceData?.invoice?.total) {
+      // Fallback message if no Stripe link is set
+      alert(`Stripe payment link not configured for this invoice of CA$${serviceData.invoice.total.toFixed(2)}`)
     }
   }
 
@@ -170,7 +182,7 @@ function ServiceDocumentContent() {
         })),
         serviceDescription: serviceData.invoice.items[0]?.description || 'Routine Maintenance',
         serviceCode: serviceData.invoice.items[0]?.code || 'SER-00000',
-        technician: "John Doe" // This could come from the database in the future
+        technician_name: serviceData.technician_name
       }
 
       const response = await fetch("/api/generate-pdf", {
@@ -509,7 +521,7 @@ function ServiceDocumentContent() {
             <Sparkles className="mr-4 text-brand-primary-accent" />
             Pro Tips for System Health
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {serviceTips.map((tip, index) => (
               <Card key={index} className="bg-brand-card-bg border-border p-6 text-center card-print-no-break">
                 <tip.icon className="w-10 h-10 text-brand-primary-accent mx-auto mb-4" />

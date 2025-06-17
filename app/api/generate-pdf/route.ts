@@ -104,10 +104,10 @@ export async function POST(request: Request) {
               left: 20px;
               right: 20px;
               bottom: 20px;
-              border: 2px solid #0c7ff2;
+              border: 2px solid #8B5CF6;
               border-radius: 12px;
               padding: 40px;
-              background: linear-gradient(to bottom right, rgba(12, 127, 242, 0.03), transparent);
+              background: #fff;
             }
             .header {
               text-align: center;
@@ -123,7 +123,7 @@ export async function POST(request: Request) {
               transform: translateX(-50%);
               width: 80%;
               height: 2px;
-              background: linear-gradient(to right, transparent, #0c7ff2, transparent);
+              background: linear-gradient(to right, transparent, #8B5CF6, transparent);
             }
             .logo {
               max-height: 65px;
@@ -132,7 +132,7 @@ export async function POST(request: Request) {
             .title {
               font-family: 'Montserrat', sans-serif;
               font-size: 32px;
-              color: #0c7ff2;
+              color: #1a2b3b;
               margin: 0;
               font-weight: 700;
               letter-spacing: 0.5px;
@@ -156,7 +156,7 @@ export async function POST(request: Request) {
             .section-title {
               font-family: 'Montserrat', sans-serif;
               font-size: 16px;
-              color: #0c7ff2;
+              color: #8B5CF6;
               margin: 0 0 12px;
               font-weight: 600;
               display: flex;
@@ -188,12 +188,12 @@ export async function POST(request: Request) {
               border: 1px solid #e2e8f0;
               border-radius: 6px;
               padding: 12px;
-              background: rgba(12, 127, 242, 0.02);
+              background: #fafafa;
             }
             .equipment-title {
               font-family: 'Montserrat', sans-serif;
               font-size: 14px;
-              color: #0c7ff2;
+              color: #1a2b3b;
               margin: 0 0 8px;
               font-weight: 600;
               text-align: center;
@@ -247,7 +247,7 @@ export async function POST(request: Request) {
               left: 50%;
               transform: translate(-50%, -50%) rotate(-45deg);
               font-size: 150px;
-              color: rgba(12, 127, 242, 0.03);
+              color: rgba(139, 92, 246, 0.02);
               font-weight: 700;
               font-family: 'Montserrat', sans-serif;
               white-space: nowrap;
@@ -260,7 +260,7 @@ export async function POST(request: Request) {
             <div class="border">
               <div class="watermark">COMFORT HUB</div>
               <div class="header">
-                <img class="logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtcU7GzV6yPfTCBxurUe9KNYB8YTbBqWmHlUUR3l-hKKR_ggkh0DDwGPSFO4Rl0ing7P4n9BOrPVjESs871Ox9ZAzFI8DrMr5fhDAkzj6xYH8rcjRDQFGEYjAtHwBV0v_tHrTtQRyzFVsPDKkmmcT7eamph8XhM_vT4IWOl-Gvwpjr5NYuM8MPKrzcFNIqXf3UsBiI_6bFh5bN4smbjK_UsSRUxjCe-YxSxKWY59rEnAeJoPqvPGIhCC0Ghn0SoLv86jrSG8D8UsU" alt="Comfort Hub Logo">
+                <img class="logo" src="https://ftcafonmwukvumvmejeg.supabase.co/storage/v1/object/public/images/ICON.png" alt="Comfort Hub Logo">
                 <h1 class="title">Certificate of Maintenance</h1>
                 <p class="subtitle">Service Record ID: ${escapeHtml(data.documentNumber)}</p>
               </div>
@@ -307,7 +307,7 @@ export async function POST(request: Request) {
                     <div class="label">Service Date:</div>
                     <div class="value">${escapeHtml(data.serviceDate)}</div>
                     <div class="label">Technician:</div>
-                    <div class="value">${escapeHtml(data.technician || 'N/A')}</div>
+                    <div class="value">${escapeHtml(data.technician_name || 'N/A')}</div>
                     <div class="label">Service Performed:</div>
                     <div class="value">${escapeHtml(data.serviceDescription || 'Routine Maintenance')} | ${escapeHtml(data.serviceCode || 'SER-00000')}</div>
                   </div>
@@ -319,8 +319,8 @@ export async function POST(request: Request) {
                 </div>
 
                 <div class="footer">
-                  <strong>Comfort Hub HVAC Services</strong>
-                  24/7 Emergency Service • (555) 123-4567 • support@comforthub.com
+                  <strong>Comfort Hub Inc</strong>
+                  Daikin Comfort Pro • 613-581-1770 • support@comforthub.ca
                 </div>
               </div>
             </div>
