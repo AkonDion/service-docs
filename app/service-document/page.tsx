@@ -208,27 +208,66 @@ function ServiceDocumentContent() {
       const blob = await response.blob()
       console.log('Blob created, size:', blob.size)
       
-      console.log('Creating download URL...')
-      const url = URL.createObjectURL(blob)
-      
-      console.log('Creating download link...')
-      const link = document.createElement("a")
-      link.href = url
-      link.download = `service-document-${serviceData.documentNumber}-${currentEquipment.name.replace(/\s+/g, "_")}.pdf`
-      link.style.display = 'none'
-      
-      console.log('Triggering download...')
-      document.body.appendChild(link)
-      link.click()
-      
-      // Clean up
-      setTimeout(() => {
-        if (link.parentNode) {
-          document.body.removeChild(link)
+      // Try alternative download method for better compatibility
+      try {
+        console.log('Attempting direct download...')
+        const url = URL.createObjectURL(blob)
+        console.log('Download URL created:', url.substring(0, 50) + '...')
+        
+        // Create a temporary link
+        const link = document.createElement("a")
+        console.log('Link element created')
+        
+        link.href = url
+        link.download = `service-document-${serviceData.documentNumber}-${currentEquipment.name.replace(/\s+/g, "_")}.pdf`
+        link.style.display = 'none'
+        
+        console.log('Download filename set:', link.download)
+        console.log('Triggering download...')
+        
+        // Try direct click first
+        document.body.appendChild(link)
+        console.log('Link appended to body')
+        
+        // Force click with user gesture
+        link.click()
+        console.log('Link clicked')
+        
+        // Alternative: try opening in new window if click fails
+        setTimeout(() => {
+          try {
+            if (link.parentNode) {
+              document.body.removeChild(link)
+              console.log('Link removed from DOM')
+            }
+            URL.revokeObjectURL(url)
+            console.log('Download cleanup completed')
+          } catch (cleanupError) {
+            console.error('Error during cleanup:', cleanupError)
+          }
+        }, 100)
+        
+      } catch (downloadError) {
+        console.error('Direct download failed, trying alternative method:', downloadError)
+        
+        // Fallback: try window.open
+        try {
+          const url = URL.createObjectURL(blob)
+          const newWindow = window.open(url, '_blank')
+          if (newWindow) {
+            console.log('Opened PDF in new window')
+          } else {
+            throw new Error('Popup blocked')
+          }
+          
+          setTimeout(() => {
+            URL.revokeObjectURL(url)
+          }, 1000)
+        } catch (fallbackError) {
+          console.error('Fallback method also failed:', fallbackError)
+          throw new Error('Unable to download PDF - please try again or contact support')
         }
-        URL.revokeObjectURL(url)
-        console.log('Download cleanup completed')
-      }, 100)
+      }
       
     } catch (error) {
       console.error("Error generating PDF:", error)

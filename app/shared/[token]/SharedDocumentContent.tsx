@@ -205,24 +205,40 @@ export default function SharedDocumentContent({ token }: { token: string }) {
       
       console.log('Creating download URL...')
       const url = URL.createObjectURL(blob)
+      console.log('Download URL created:', url.substring(0, 50) + '...')
       
       console.log('Creating download link...')
       const a = document.createElement('a')
+      console.log('Link element created')
+      
       a.style.display = 'none'
+      console.log('Link style set to none')
+      
       a.href = url
+      console.log('Link href set')
+      
       a.download = `service-document-${requestData.documentNumber}-${currentEquipment.name.replace(/\s+/g, "_")}.pdf`
+      console.log('Download filename set:', a.download)
       
       console.log('Triggering download...')
       document.body.appendChild(a)
+      console.log('Link appended to body')
+      
       a.click()
+      console.log('Link clicked')
       
       // Clean up
       setTimeout(() => {
-        if (a.parentNode) {
-          document.body.removeChild(a)
+        try {
+          if (a.parentNode) {
+            document.body.removeChild(a)
+            console.log('Link removed from DOM')
+          }
+          URL.revokeObjectURL(url)
+          console.log('Download cleanup completed')
+        } catch (cleanupError) {
+          console.error('Error during cleanup:', cleanupError)
         }
-        URL.revokeObjectURL(url)
-        console.log('Download cleanup completed')
       }, 100)
       
     } catch (error) {
