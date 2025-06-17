@@ -3,8 +3,10 @@ import puppeteer from "puppeteer"
 
 export async function POST(request: Request) {
   try {
+    console.log('PDF Generation route called')
     const data = await request.json()
     console.log('Received data:', data)
+    console.log('Data keys:', Object.keys(data))
     
     // Validate required fields
     const requiredFields = ['documentNumber', 'serviceDate', 'customer', 'equipment']
@@ -329,6 +331,7 @@ export async function POST(request: Request) {
       </html>
     `
 
+    console.log('Launching Puppeteer...')
     const browser = await puppeteer.launch({ 
       headless: 'new',
       args: [
@@ -342,10 +345,15 @@ export async function POST(request: Request) {
         '--disable-gpu'
       ]
     })
+    console.log('Puppeteer launched, creating page...')
     const page = await browser.newPage()
+    console.log('Setting page content...')
     await page.setContent(certificateHtml, { waitUntil: 'networkidle0' })
+    console.log('Generating PDF...')
     const pdf = await page.pdf({ format: 'A4' })
+    console.log('PDF generated, closing browser...')
     await browser.close()
+    console.log('Browser closed, returning PDF...')
 
     return new NextResponse(pdf, {
       headers: {
