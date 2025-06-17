@@ -28,7 +28,7 @@ import {
   Lightbulb,
   Share2
 } from "lucide-react"
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { generateShareUrl } from "../utils/sharing"
 import { toast } from "sonner"
@@ -80,7 +80,7 @@ const InfoItem = ({ label, value, mono = false }: { label: string; value: string
   </div>
 )
 
-export default function ServiceDocumentPage() {
+function ServiceDocumentContent() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
   
@@ -557,5 +557,20 @@ export default function ServiceDocumentPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ServiceDocumentPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Loading Service Document...</h1>
+          <p className="text-gray-600">Please wait while we load your service document.</p>
+        </div>
+      </div>
+    }>
+      <ServiceDocumentContent />
+    </Suspense>
   )
 }
