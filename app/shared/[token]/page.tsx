@@ -2,12 +2,13 @@ import { Suspense } from 'react'
 import SharedDocumentContent from './SharedDocumentContent'
 
 interface Props {
-  params: { token: string }
+  params: Promise<{ token: string }>
 }
 
 export default async function SharedServiceDocument({ params }: Props) {
   // Validate the token parameter
-  const token = params?.token
+  const resolvedParams = await params
+  const token = resolvedParams?.token
   if (!token || typeof token !== 'string') {
     throw new Error('Invalid token')
   }
