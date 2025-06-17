@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 210 20% 98%;
+    --primary-foreground: 220.9 39.3% 11%;
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220.9 39.3% 11%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 220.9 39.3% 11%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 98%;
+    --ring: 216 34% 17.1%;
+    --radius: 0.75rem;
+
+    /* --- Updated Brand Colors for Readability --- */
+
+    /* Primary accent is now Teal */
+    --brand-primary-accent: 168 70% 48%;
+
+    /* Backgrounds are now a lighter, more neutral dark gray/blue */
+    --brand-dark-bg: 220 20% 12%;
+    --brand-card-bg: 220 18% 16%;
+
+    /* Borders adjusted for the new background */
+    --border: 220 15% 25%;
+
+    /* Text colors with good contrast */
+    --brand-text-primary: 210 20% 98%; /* White / Very Light Gray */
+    --brand-text-secondary: 220 12% 65%; /* Brighter Gray for labels */
+
+    /* Fallback for 'green' variable name, now points to teal */
+    --brand-green: var(--brand-primary-accent);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-brand-dark-bg text-brand-text-primary;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@media print {
+  body {
+    font-size: 10pt; /* Optional: Adjust base font size for print */
+    /* Ensure background colors and images are printed if desired,
+       but your print:bg-white likely overrides this for a B&W theme.
+       If you wanted to print the dark theme as-is, you'd use these:
+    */
+    /*
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    */
+  }
+
+  /* General rules for sections */
+  section {
+    break-inside: avoid-page; /* Try to keep whole <section> elements on one page */
+    page-break-inside: avoid; /* Older property for compatibility */
+    margin-top: 1.5rem; /* Add some space before sections if they start a new page */
+    margin-bottom: 1.5rem;
+  }
+
+  /* Avoid breaking inside cards */
+  .card-print-no-break {
+    /* Add this class to Card components in your JSX */
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Specific handling for the two-column Customer & Equipment section */
+  /* You might need to wrap these two cards in a div with this class */
+  .customer-equipment-section-wrapper {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  /* Table specific styles */
+  table {
+    break-inside: auto; /* Allow tables to break across pages */
+    width: 100% !important; /* Ensure tables use full width on print */
+  }
+
+  thead {
+    display: table-header-group !important; /* Crucial for repeating headers */
+  }
+
+  tbody tr,
+  .invoice-summary-row {
+    /* Add .invoice-summary-row to divs acting as table rows in summary */
+    break-inside: avoid-page !important; /* Try to keep table rows on a single page */
+    page-break-inside: avoid !important;
+  }
+
+  tfoot {
+    display: table-footer-group !important; /* For repeating footers if you use <tfoot> */
+  }
+
+  /* Hide elements not meant for printing */
+  .print-hidden {
+    display: none !important;
+  }
+
+  /* Ensure links are distinguishable if not using color */
+  a {
+    text-decoration: underline !important;
+    color: black !important; /* Assuming B&W print */
+  }
+
+  /* Example: Ensure specific elements don't break */
+  .info-item {
+    /* Assuming InfoItem component's root div gets this class */
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Control widows and orphans for paragraphs */
+  p,
+  li,
+  .notes-cell-content {
+    /* Add .notes-cell-content to the div inside notes TableCell */
+    widows: 3;
+    orphans: 3;
+  }
+
+  /* Resetting any theme-specific text colors for print if not already handled */
+  .text-brand-primary-accent {
+    color: black !important; /* Or a dark gray for print */
+  }
+  .text-brand-text-secondary {
+    color: #555 !important; /* A lighter gray for secondary text */
+  }
+}
