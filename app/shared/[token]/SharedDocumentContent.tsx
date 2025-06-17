@@ -145,6 +145,12 @@ export default function SharedDocumentContent({ token }: { token: string }) {
   }
 
   const generatePDF = async () => {
+    // Ensure we're running in the browser
+    if (typeof window === 'undefined') {
+      console.error('PDF generation attempted on server side')
+      return
+    }
+
     setIsGeneratingPDF(true)
     try {
       // Ensure we have all required customer data
@@ -179,31 +185,46 @@ export default function SharedDocumentContent({ token }: { token: string }) {
         throw new Error('Customer name and address are required')
       }
 
+      console.log('Calling PDF generation API...')
       const response = await fetch("/api/generate-pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData)
       })
       
+      console.log('PDF API response status:', response.status)
       if (!response.ok) {
         const errorData = await response.json()
         console.error('PDF Generation Error:', errorData)
         throw new Error(errorData.error || 'Failed to generate PDF')
       }
 
+      console.log('Converting response to blob...')
       const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
+      console.log('Blob created, size:', blob.size)
       
+      console.log('Creating download URL...')
+      const url = URL.createObjectURL(blob)
+      
+      console.log('Creating download link...')
       const a = document.createElement('a')
       a.style.display = 'none'
       a.href = url
       a.download = `service-document-${requestData.documentNumber}-${currentEquipment.name.replace(/\s+/g, "_")}.pdf`
       
+      console.log('Triggering download...')
       document.body.appendChild(a)
       a.click()
       
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+      // Clean up
+      setTimeout(() => {
+        if (a.parentNode) {
+          document.body.removeChild(a)
+        }
+        URL.revokeObjectURL(url)
+        console.log('Download cleanup completed')
+      }, 100)
+      
     } catch (error) {
       console.error("Error generating PDF:", error)
       alert((error as Error).message || "Failed to generate PDF. Please try again.")

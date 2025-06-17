@@ -29,7 +29,7 @@ import {
   Share2,
   Wind
 } from "lucide-react"
-import { useState, useMemo, useEffect, Suspense } from "react"
+import { Suspense, useState, useEffect, useMemo } from "react"
 import { useSearchParams } from "next/navigation"
 import { generateShareUrl } from "../utils/sharing"
 import { toast } from "sonner"
@@ -156,6 +156,12 @@ function ServiceDocumentContent() {
   }
 
   const generatePDF = async () => {
+    // Ensure we're running in the browser
+    if (typeof window === 'undefined') {
+      console.error('PDF generation attempted on server side')
+      return
+    }
+
     if (!serviceData || !currentEquipment) {
       alert('No service data available for PDF generation')
       return
@@ -185,26 +191,45 @@ function ServiceDocumentContent() {
         technician_name: serviceData.technician_name
       }
 
+      console.log('Calling PDF generation API...')
       const response = await fetch("/api/generate-pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData)
       })
       
+      console.log('PDF API response status:', response.status)
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.error || 'Failed to generate PDF')
       }
       
+      console.log('Converting response to blob...')
       const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
+      console.log('Blob created, size:', blob.size)
+      
+      console.log('Creating download URL...')
+      const url = URL.createObjectURL(blob)
+      
+      console.log('Creating download link...')
       const link = document.createElement("a")
       link.href = url
       link.download = `service-document-${serviceData.documentNumber}-${currentEquipment.name.replace(/\s+/g, "_")}.pdf`
+      link.style.display = 'none'
+      
+      console.log('Triggering download...')
       document.body.appendChild(link)
       link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
+      
+      // Clean up
+      setTimeout(() => {
+        if (link.parentNode) {
+          document.body.removeChild(link)
+        }
+        URL.revokeObjectURL(url)
+        console.log('Download cleanup completed')
+      }, 100)
+      
     } catch (error) {
       console.error("Error generating PDF:", error)
       alert((error as Error).message || "Failed to generate PDF. Please try again.")
