@@ -1,6 +1,9 @@
 import { Suspense } from 'react'
 import SharedDocumentContent from './SharedDocumentContent'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 interface Props {
   params: Promise<{ token: string }>
 }
