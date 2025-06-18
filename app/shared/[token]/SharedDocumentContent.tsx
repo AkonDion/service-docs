@@ -213,38 +213,43 @@ export default function SharedDocumentContent({ token }: { token: string }) {
       console.log('Download URL created:', url.substring(0, 50) + '...')
       
       console.log('Creating download link...')
-      const a = document.createElement('a')
-      console.log('Link element created')
+      const link = document.createElement('a')
+      console.log('Link element created:', link)
       
-      a.style.display = 'none'
-      console.log('Link style set to none')
+      link.href = url
+      console.log('Link href set to:', link.href)
       
-      a.href = url
-      console.log('Link href set')
+      link.download = `service-document-${requestData.documentNumber}-${currentEquipment.name.replace(/\s+/g, "_")}.pdf`
+      console.log('Link download attribute set to:', link.download)
       
-      a.download = `service-document-${requestData.documentNumber}-${currentEquipment.name.replace(/\s+/g, "_")}.pdf`
-      console.log('Download filename set:', a.download)
+      link.style.display = 'none'
+      console.log('Link style set to display none')
       
-      console.log('Triggering download...')
-      document.body.appendChild(a)
+      document.body.appendChild(link)
       console.log('Link appended to body')
       
-      a.click()
-      console.log('Link clicked')
+      console.log('About to trigger click...')
+      try {
+        link.click()
+        console.log('Click triggered successfully')
+      } catch (clickError) {
+        console.error('Error during click:', clickError)
+        throw new Error(`Click failed: ${clickError instanceof Error ? clickError.message : String(clickError)}`)
+      }
       
-      // Clean up
-      setTimeout(() => {
-        try {
-          if (a.parentNode) {
-            document.body.removeChild(a)
-            console.log('Link removed from DOM')
-          }
-          URL.revokeObjectURL(url)
-          console.log('Download cleanup completed')
-        } catch (cleanupError) {
-          console.error('Error during cleanup:', cleanupError)
-        }
-      }, 100)
+      console.log('Removing link from DOM...')
+      document.body.removeChild(link)
+      console.log('Link removed from DOM')
+      
+      console.log('Revoking blob URL...')
+      if (typeof window !== 'undefined') {
+        window.URL.revokeObjectURL(url)
+      } else {
+        URL.revokeObjectURL(url)
+      }
+      console.log('Blob URL revoked')
+      
+      console.log('PDF download completed successfully!')
       
     } catch (error) {
       console.error("Error generating PDF:", error)

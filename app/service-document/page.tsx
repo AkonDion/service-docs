@@ -220,39 +220,44 @@ function ServiceDocumentContent() {
         const url = URL.createObjectURL(blob)
         console.log('Download URL created:', url.substring(0, 50) + '...')
         
-        // Create a temporary link
-        const link = document.createElement("a")
-        console.log('Link element created')
+        console.log('Creating download link...')
+        const link = document.createElement('a')
+        console.log('Link element created:', link)
         
         link.href = url
+        console.log('Link href set to:', link.href)
+        
         link.download = `service-document-${serviceData.documentNumber}-${currentEquipment.name.replace(/\s+/g, "_")}.pdf`
+        console.log('Link download attribute set to:', link.download)
+        
         link.style.display = 'none'
+        console.log('Link style set to display none')
         
-        console.log('Download filename set:', link.download)
-        console.log('Triggering download...')
-        
-        // Try direct click first
         document.body.appendChild(link)
         console.log('Link appended to body')
         
-        // Force click with user gesture
-        link.click()
-        console.log('Link clicked')
+        console.log('About to trigger click...')
+        try {
+          link.click()
+          console.log('Click triggered successfully')
+        } catch (clickError) {
+          console.error('Error during click:', clickError)
+          throw new Error(`Click failed: ${clickError instanceof Error ? clickError.message : String(clickError)}`)
+        }
         
-        // Alternative: try opening in new window if click fails
-        setTimeout(() => {
-          try {
-            if (link.parentNode) {
-              document.body.removeChild(link)
-              console.log('Link removed from DOM')
-            }
-            URL.revokeObjectURL(url)
-            console.log('Download cleanup completed')
-          } catch (cleanupError) {
-            console.error('Error during cleanup:', cleanupError)
-          }
-        }, 100)
+        console.log('Removing link from DOM...')
+        document.body.removeChild(link)
+        console.log('Link removed from DOM')
         
+        console.log('Revoking blob URL...')
+        if (typeof window !== 'undefined') {
+          window.URL.revokeObjectURL(url)
+        } else {
+          URL.revokeObjectURL(url)
+        }
+        console.log('Blob URL revoked')
+        
+        console.log('PDF download completed successfully!')
       } catch (downloadError) {
         console.error('Direct download failed, trying alternative method:', downloadError)
         
