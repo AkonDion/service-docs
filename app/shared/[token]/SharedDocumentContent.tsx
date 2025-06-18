@@ -86,7 +86,13 @@ export default function SharedDocumentContent({ token }: { token: string }) {
   const [document, setDocument] = useState<ServiceDocument | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [currentEquipmentIndex, setCurrentEquipmentIndex] = useState(0)
+  const [requestData, setRequestData] = useState<any>(null)
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -145,9 +151,9 @@ export default function SharedDocumentContent({ token }: { token: string }) {
   }
 
   const generatePDF = async () => {
-    // Ensure we're running in the browser
-    if (typeof window === 'undefined') {
-      console.error('PDF generation attempted on server side')
+    // Ensure we're running in the browser and client is mounted
+    if (!isClient || typeof window === 'undefined') {
+      console.error('PDF generation attempted on server side or before client mount')
       return
     }
 
@@ -208,31 +214,27 @@ export default function SharedDocumentContent({ token }: { token: string }) {
       console.log('Blob created, size:', blob.size)
       console.log('Blob type:', blob.type)
       
+      console.log('Starting client-side download...')
       console.log('Creating download URL...')
-      const url = typeof window !== 'undefined' ? window.URL.createObjectURL(blob) : URL.createObjectURL(blob)
+      const url = window.URL.createObjectURL(blob)
       console.log('Download URL created:', url.substring(0, 50) + '...')
       
-      // Ensure we're in the browser environment
-      if (typeof window === 'undefined' || typeof document === 'undefined') {
-        throw new Error('Download must be performed in browser environment')
-      }
-      
-      console.log('Creating download link...')
-      const link = document.createElement('a')
-      console.log('Link element created:', link)
-      
-      link.href = url
-      console.log('Link href set to:', link.href)
-      
-      link.download = `service-document-${requestData.documentNumber}-${currentEquipment.name.replace(/\s+/g, "_")}.pdf`
-      console.log('Link download attribute set to:', link.download)
-      
-      link.style.display = 'none'
-      console.log('Link style set to display none')
-      
-      // Use setTimeout to ensure DOM is ready and avoid SSR issues
-      setTimeout(() => {
+      // Use requestAnimationFrame to ensure we're in the next browser frame
+      requestAnimationFrame(() => {
         try {
+          console.log('Creating download link...')
+          const link = document.createElement('a')
+          console.log('Link element created:', link)
+          
+          link.href = url
+          console.log('Link href set to:', link.href)
+          
+          link.download = `service-document-${requestData.documentNumber}-${currentEquipment.name.replace(/\s+/g, "_")}.pdf`
+          console.log('Link download attribute set to:', link.download)
+          
+          link.style.display = 'none'
+          console.log('Link style set to display none')
+          
           console.log('Appending link to body...')
           document.body.appendChild(link)
           console.log('Link appended to body')
@@ -246,11 +248,7 @@ export default function SharedDocumentContent({ token }: { token: string }) {
           console.log('Link removed from DOM')
           
           console.log('Revoking blob URL...')
-          if (typeof window !== 'undefined') {
-            window.URL.revokeObjectURL(url)
-          } else {
-            URL.revokeObjectURL(url)
-          }
+          window.URL.revokeObjectURL(url)
           console.log('Blob URL revoked')
           
           console.log('PDF download completed successfully!')
@@ -271,7 +269,7 @@ export default function SharedDocumentContent({ token }: { token: string }) {
             throw new Error(`All download methods failed: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}`)
           }
         }
-      }, 100)
+      })
       
     } catch (error) {
       console.error("Error generating PDF:", error)
