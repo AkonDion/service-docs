@@ -219,58 +219,74 @@ export default function SharedDocumentContent({ token }: { token: string }) {
       const url = window.URL.createObjectURL(blob)
       console.log('Download URL created:', url.substring(0, 50) + '...')
       
-      // Use requestAnimationFrame to ensure we're in the next browser frame
-      requestAnimationFrame(() => {
-        try {
-          console.log('Creating download link...')
-          const link = document.createElement('a')
-          console.log('Link element created:', link)
-          
-          link.href = url
-          console.log('Link href set to:', link.href)
-          
-          link.download = `service-document-${requestData.documentNumber}-${currentEquipment.name.replace(/\s+/g, "_")}.pdf`
-          console.log('Link download attribute set to:', link.download)
-          
-          link.style.display = 'none'
-          console.log('Link style set to display none')
-          
-          console.log('Appending link to body...')
-          document.body.appendChild(link)
-          console.log('Link appended to body')
-          
-          console.log('About to trigger click...')
-          link.click()
-          console.log('Click triggered successfully')
-          
-          console.log('Removing link from DOM...')
-          document.body.removeChild(link)
-          console.log('Link removed from DOM')
-          
-          console.log('Revoking blob URL...')
-          window.URL.revokeObjectURL(url)
-          console.log('Blob URL revoked')
-          
-          console.log('PDF download completed successfully!')
-        } catch (domError) {
-          console.error('DOM manipulation error:', domError)
-          // Fallback: try opening in new window
-          console.log('Trying fallback method: window.open')
-          try {
-            const newWindow = window.open(url, '_blank')
-            if (newWindow) {
-              console.log('Opened PDF in new window')
-            } else {
-              console.log('Popup blocked, trying direct navigation')
-              window.location.href = url
-            }
-          } catch (fallbackError) {
-            console.error('Fallback method failed:', fallbackError)
-            throw new Error(`All download methods failed: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}`)
-          }
-        }
-      })
+      // Try multiple download methods without DOM manipulation
+      const filename = `service-document-${requestData.documentNumber}-${currentEquipment.name.replace(/\s+/g, "_")}.pdf`
       
+      console.log('Attempting download methods...')
+      
+      // Method 1: Try File System Access API (modern browsers)
+      if ('showSaveFilePicker' in window) {
+        try {
+          console.log('Trying File System Access API...')
+          const fileHandle = await (window as any).showSaveFilePicker({
+            suggestedName: filename,
+            types: [{
+              description: 'PDF files',
+              accept: { 'application/pdf': ['.pdf'] }
+            }]
+          })
+          const writableStream = await fileHandle.createWritable()
+          await writableStream.write(blob)
+          await writableStream.close()
+          console.log('File saved successfully with File System Access API!')
+          
+          // Clean up
+          window.URL.revokeObjectURL(url)
+          console.log('PDF download completed successfully!')
+          return
+        } catch (fsError) {
+          console.log('File System Access API failed or cancelled:', fsError)
+        }
+      }
+      
+      // Method 2: Try window.open (most compatible)
+      try {
+        console.log('Trying window.open method...')
+        const newWindow = window.open(url, '_blank')
+        if (newWindow) {
+          console.log('Opened PDF in new window successfully!')
+          // Set a title for the new window
+          setTimeout(() => {
+            try {
+              newWindow.document.title = filename
+            } catch (e) {
+              // Ignore cross-origin errors
+            }
+          }, 100)
+        } else {
+          throw new Error('Popup blocked')
+        }
+      } catch (windowError) {
+        console.log('window.open failed:', windowError)
+        
+        // Method 3: Direct navigation fallback
+        try {
+          console.log('Trying direct navigation fallback...')
+          window.location.href = url
+          console.log('Navigated to PDF URL')
+        } catch (navError) {
+          console.error('All download methods failed:', navError)
+          throw new Error(`Unable to download PDF: ${navError instanceof Error ? navError.message : String(navError)}`)
+        }
+      }
+      
+      // Clean up after a delay
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url)
+        console.log('Blob URL revoked')
+      }, 5000)
+      
+      console.log('PDF download initiated successfully!')
     } catch (error) {
       console.error("Error generating PDF:", error)
       alert((error as Error).message || "Failed to generate PDF. Please try again.")
