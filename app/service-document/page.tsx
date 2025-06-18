@@ -214,71 +214,70 @@ function ServiceDocumentContent() {
       console.log('Blob created, size:', blob.size)
       console.log('Blob type:', blob.type)
       
-      // Try alternative download method for better compatibility
-      try {
-        console.log('Attempting direct download...')
-        const url = URL.createObjectURL(blob)
-        console.log('Download URL created:', url.substring(0, 50) + '...')
-        
-        console.log('Creating download link...')
-        const link = document.createElement('a')
-        console.log('Link element created:', link)
-        
-        link.href = url
-        console.log('Link href set to:', link.href)
-        
-        link.download = `service-document-${serviceData.documentNumber}-${currentEquipment.name.replace(/\s+/g, "_")}.pdf`
-        console.log('Link download attribute set to:', link.download)
-        
-        link.style.display = 'none'
-        console.log('Link style set to display none')
-        
-        document.body.appendChild(link)
-        console.log('Link appended to body')
-        
-        console.log('About to trigger click...')
+      console.log('Creating download URL...')
+      const url = typeof window !== 'undefined' ? window.URL.createObjectURL(blob) : URL.createObjectURL(blob)
+      console.log('Download URL created:', url.substring(0, 50) + '...')
+      
+      // Ensure we're in the browser environment
+      if (typeof window === 'undefined' || typeof document === 'undefined') {
+        throw new Error('Download must be performed in browser environment')
+      }
+      
+      console.log('Creating download link...')
+      const link = document.createElement('a')
+      console.log('Link element created:', link)
+      
+      link.href = url
+      console.log('Link href set to:', link.href)
+      
+      link.download = `service-document-${serviceData.documentNumber}-${currentEquipment.name.replace(/\s+/g, "_")}.pdf`
+      console.log('Link download attribute set to:', link.download)
+      
+      link.style.display = 'none'
+      console.log('Link style set to display none')
+      
+      // Use setTimeout to ensure DOM is ready and avoid SSR issues
+      setTimeout(() => {
         try {
+          console.log('Appending link to body...')
+          document.body.appendChild(link)
+          console.log('Link appended to body')
+          
+          console.log('About to trigger click...')
           link.click()
           console.log('Click triggered successfully')
-        } catch (clickError) {
-          console.error('Error during click:', clickError)
-          throw new Error(`Click failed: ${clickError instanceof Error ? clickError.message : String(clickError)}`)
-        }
-        
-        console.log('Removing link from DOM...')
-        document.body.removeChild(link)
-        console.log('Link removed from DOM')
-        
-        console.log('Revoking blob URL...')
-        if (typeof window !== 'undefined') {
-          window.URL.revokeObjectURL(url)
-        } else {
-          URL.revokeObjectURL(url)
-        }
-        console.log('Blob URL revoked')
-        
-        console.log('PDF download completed successfully!')
-      } catch (downloadError) {
-        console.error('Direct download failed, trying alternative method:', downloadError)
-        
-        // Fallback: try window.open
-        try {
-          const url = URL.createObjectURL(blob)
-          const newWindow = window.open(url, '_blank')
-          if (newWindow) {
-            console.log('Opened PDF in new window')
-          } else {
-            throw new Error('Popup blocked')
-          }
           
-          setTimeout(() => {
+          console.log('Removing link from DOM...')
+          document.body.removeChild(link)
+          console.log('Link removed from DOM')
+          
+          console.log('Revoking blob URL...')
+          if (typeof window !== 'undefined') {
+            window.URL.revokeObjectURL(url)
+          } else {
             URL.revokeObjectURL(url)
-          }, 1000)
-        } catch (fallbackError) {
-          console.error('Fallback method also failed:', fallbackError)
-          throw new Error('Unable to download PDF - please try again or contact support')
+          }
+          console.log('Blob URL revoked')
+          
+          console.log('PDF download completed successfully!')
+        } catch (domError) {
+          console.error('DOM manipulation error:', domError)
+          // Fallback: try opening in new window
+          console.log('Trying fallback method: window.open')
+          try {
+            const newWindow = window.open(url, '_blank')
+            if (newWindow) {
+              console.log('Opened PDF in new window')
+            } else {
+              console.log('Popup blocked, trying direct navigation')
+              window.location.href = url
+            }
+          } catch (fallbackError) {
+            console.error('Fallback method failed:', fallbackError)
+            throw new Error(`All download methods failed: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}`)
+          }
         }
-      }
+      }, 100)
       
     } catch (error) {
       console.error("Error generating PDF:", error)
