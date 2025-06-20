@@ -224,10 +224,40 @@ export default function SharedDocumentContent({ token }: { token: string }) {
       
       console.log('Attempting download methods...')
       
-      // Method 1: Try File System Access API (modern browsers - save-as dialog)
+      // Method 1: window.open (automatic download - modern web UX)
+      try {
+        console.log('Trying automatic download...')
+        const newWindow = window.open(url, '_blank')
+        if (newWindow) {
+          console.log('PDF download started automatically!')
+          // Set a title for the new window
+          setTimeout(() => {
+            try {
+              newWindow.document.title = filename
+            } catch (e) {
+              // Ignore cross-origin errors
+            }
+          }, 100)
+          
+          // Clean up URL after download starts
+          setTimeout(() => {
+            window.URL.revokeObjectURL(url)
+            console.log('Blob URL revoked')
+          }, 2000)
+          
+          console.log('PDF download completed successfully!')
+          return
+        } else {
+          throw new Error('Popup blocked - trying alternative methods')
+        }
+      } catch (windowError) {
+        console.log('Automatic download failed:', windowError)
+      }
+      
+      // Method 2: File System Access API (fallback for save-as dialog)
       if ('showSaveFilePicker' in window) {
         try {
-          console.log('Trying File System Access API...')
+          console.log('Trying File System Access API as fallback...')
           const fileHandle = await (window as any).showSaveFilePicker({
             suggestedName: filename,
             types: [{
@@ -249,36 +279,6 @@ export default function SharedDocumentContent({ token }: { token: string }) {
         }
       } else {
         console.log('File System Access API not supported in this browser')
-      }
-      
-      // Method 2: window.open (automatic download - most reliable!)
-      try {
-        console.log('Trying automatic download via window.open...')
-        const newWindow = window.open(url, '_blank')
-        if (newWindow) {
-          console.log('PDF opened for automatic download!')
-          // Set a title for the new window
-          setTimeout(() => {
-            try {
-              newWindow.document.title = filename
-            } catch (e) {
-              // Ignore cross-origin errors
-            }
-          }, 100)
-          
-          // Clean up URL after download starts
-          setTimeout(() => {
-            window.URL.revokeObjectURL(url)
-            console.log('Blob URL revoked')
-          }, 2000)
-          
-          console.log('PDF download completed successfully!')
-          return
-        } else {
-          throw new Error('Popup blocked')
-        }
-      } catch (windowError) {
-        console.log('window.open automatic download failed:', windowError)
       }
       
       // Method 3: Traditional download fallback (for browsers that block window.open)
