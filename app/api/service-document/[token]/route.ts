@@ -37,8 +37,8 @@ export async function GET(
       return new NextResponse('Service document not found', { status: 404 })
     }
 
-    // Generate document number if not exists
-    const documentNumber = `CH-${new Date(rawDocument.service_date).getFullYear()}-${rawDocument.id.slice(0, 6).toUpperCase()}`
+    // Use the stored document number from database
+    const documentNumber = rawDocument.document_number
 
     // Get hardcoded service items based on service type
     const { services: hardcodedServices } = getServicesByType(rawDocument.service_type)
