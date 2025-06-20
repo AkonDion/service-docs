@@ -224,7 +224,7 @@ export default function SharedDocumentContent({ token }: { token: string }) {
       
       console.log('Attempting download methods...')
       
-      // Method 1: Try File System Access API (modern browsers)
+      // Method 1: Try File System Access API (modern browsers - save-as dialog)
       if ('showSaveFilePicker' in window) {
         try {
           console.log('Trying File System Access API...')
@@ -251,9 +251,39 @@ export default function SharedDocumentContent({ token }: { token: string }) {
         console.log('File System Access API not supported in this browser')
       }
       
-      // Method 2: Try traditional download (most compatible for automatic downloads)
+      // Method 2: window.open (automatic download - most reliable!)
       try {
-        console.log('Trying traditional download method...')
+        console.log('Trying automatic download via window.open...')
+        const newWindow = window.open(url, '_blank')
+        if (newWindow) {
+          console.log('PDF opened for automatic download!')
+          // Set a title for the new window
+          setTimeout(() => {
+            try {
+              newWindow.document.title = filename
+            } catch (e) {
+              // Ignore cross-origin errors
+            }
+          }, 100)
+          
+          // Clean up URL after download starts
+          setTimeout(() => {
+            window.URL.revokeObjectURL(url)
+            console.log('Blob URL revoked')
+          }, 2000)
+          
+          console.log('PDF download completed successfully!')
+          return
+        } else {
+          throw new Error('Popup blocked')
+        }
+      } catch (windowError) {
+        console.log('window.open automatic download failed:', windowError)
+      }
+      
+      // Method 3: Traditional download fallback (for browsers that block window.open)
+      try {
+        console.log('Trying traditional download method as fallback...')
         
         // Create download link with proper user gesture context
         const downloadLink = window.document.createElement('a')
@@ -285,35 +315,14 @@ export default function SharedDocumentContent({ token }: { token: string }) {
         console.log('Traditional download failed:', traditionalError)
       }
       
-      // Method 3: Try window.open (view in new tab)
+      // Method 4: Direct navigation (last resort)
       try {
-        console.log('Trying window.open method...')
-        const newWindow = window.open(url, '_blank')
-        if (newWindow) {
-          console.log('Opened PDF in new window successfully!')
-          // Set a title for the new window
-          setTimeout(() => {
-            try {
-              newWindow.document.title = filename
-            } catch (e) {
-              // Ignore cross-origin errors
-            }
-          }, 100)
-        } else {
-          throw new Error('Popup blocked')
-        }
-      } catch (windowError) {
-        console.log('window.open failed:', windowError)
-        
-        // Method 4: Direct navigation fallback
-        try {
-          console.log('Trying direct navigation fallback...')
-          window.location.href = url
-          console.log('Navigated to PDF URL')
-        } catch (navError) {
-          console.error('All download methods failed:', navError)
-          throw new Error(`Unable to download PDF: ${navError instanceof Error ? navError.message : String(navError)}`)
-        }
+        console.log('Trying direct navigation fallback...')
+        window.location.href = url
+        console.log('Navigated to PDF URL')
+      } catch (navError) {
+        console.error('All download methods failed:', navError)
+        throw new Error(`Unable to download PDF: ${navError instanceof Error ? navError.message : String(navError)}`)
       }
     } catch (error) {
       console.error("Error generating PDF:", error)
