@@ -252,9 +252,45 @@ function ServiceDocumentContent() {
         } catch (fsError) {
           console.log('File System Access API failed or cancelled:', fsError)
         }
+      } else {
+        console.log('File System Access API not supported in this browser')
       }
       
-      // Method 2: Try window.open (most compatible)
+      // Method 2: Try traditional download (most compatible for automatic downloads)
+      try {
+        console.log('Trying traditional download method...')
+        
+        // Create download link with proper user gesture context
+        const downloadLink = window.document.createElement('a')
+        downloadLink.href = url
+        downloadLink.download = filename
+        downloadLink.style.display = 'none'
+        
+        // Add to DOM temporarily
+        window.document.body.appendChild(downloadLink)
+        
+        // Trigger download in user gesture context
+        downloadLink.click()
+        
+        // Clean up immediately
+        window.document.body.removeChild(downloadLink)
+        
+        console.log('Traditional download triggered successfully!')
+        
+        // Clean up URL after a short delay
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url)
+          console.log('Blob URL revoked')
+        }, 1000)
+        
+        console.log('PDF download completed successfully!')
+        return
+        
+      } catch (traditionalError) {
+        console.log('Traditional download failed:', traditionalError)
+      }
+      
+      // Method 3: Try window.open (view in new tab)
       try {
         console.log('Trying window.open method...')
         const newWindow = window.open(url, '_blank')
@@ -274,7 +310,7 @@ function ServiceDocumentContent() {
       } catch (windowError) {
         console.log('window.open failed:', windowError)
         
-        // Method 3: Direct navigation fallback
+        // Method 4: Direct navigation fallback
         try {
           console.log('Trying direct navigation fallback...')
           window.location.href = url
