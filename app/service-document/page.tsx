@@ -229,9 +229,43 @@ function ServiceDocumentContent() {
       
       console.log('Attempting download methods...')
       
-      // Method 1: window.open (automatic download - modern web UX)
+      // Method 1: Traditional download (no flash, most compatible)
       try {
-        console.log('Trying automatic download...')
+        console.log('Trying silent download...')
+        
+        // Create download link with proper user gesture context
+        const downloadLink = window.document.createElement('a')
+        downloadLink.href = url
+        downloadLink.download = filename
+        downloadLink.style.display = 'none'
+        
+        // Add to DOM temporarily
+        window.document.body.appendChild(downloadLink)
+        
+        // Trigger download in user gesture context
+        downloadLink.click()
+        
+        // Clean up immediately
+        window.document.body.removeChild(downloadLink)
+        
+        console.log('Silent download triggered successfully!')
+        
+        // Clean up URL after a short delay
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url)
+          console.log('Blob URL revoked')
+        }, 1000)
+        
+        console.log('PDF download completed successfully!')
+        return
+        
+      } catch (traditionalError) {
+        console.log('Silent download failed:', traditionalError)
+      }
+      
+      // Method 2: window.open (fallback with flash but reliable)
+      try {
+        console.log('Trying automatic download with window.open...')
         const newWindow = window.open(url, '_blank')
         if (newWindow) {
           console.log('PDF download started automatically!')
@@ -256,10 +290,10 @@ function ServiceDocumentContent() {
           throw new Error('Popup blocked - trying alternative methods')
         }
       } catch (windowError) {
-        console.log('Automatic download failed:', windowError)
+        console.log('Window.open download failed:', windowError)
       }
       
-      // Method 2: File System Access API (fallback for save-as dialog)
+      // Method 3: File System Access API (fallback for save-as dialog)
       if ('showSaveFilePicker' in window) {
         try {
           console.log('Trying File System Access API as fallback...')
@@ -284,40 +318,6 @@ function ServiceDocumentContent() {
         }
       } else {
         console.log('File System Access API not supported in this browser')
-      }
-      
-      // Method 3: Traditional download fallback (for browsers that block window.open)
-      try {
-        console.log('Trying traditional download method as fallback...')
-        
-        // Create download link with proper user gesture context
-        const downloadLink = window.document.createElement('a')
-        downloadLink.href = url
-        downloadLink.download = filename
-        downloadLink.style.display = 'none'
-        
-        // Add to DOM temporarily
-        window.document.body.appendChild(downloadLink)
-        
-        // Trigger download in user gesture context
-        downloadLink.click()
-        
-        // Clean up immediately
-        window.document.body.removeChild(downloadLink)
-        
-        console.log('Traditional download triggered successfully!')
-        
-        // Clean up URL after a short delay
-        setTimeout(() => {
-          window.URL.revokeObjectURL(url)
-          console.log('Blob URL revoked')
-        }, 1000)
-        
-        console.log('PDF download completed successfully!')
-        return
-        
-      } catch (traditionalError) {
-        console.log('Traditional download failed:', traditionalError)
       }
       
       // Method 4: Direct navigation (last resort)
